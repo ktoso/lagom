@@ -1,6 +1,6 @@
 val ScalaVersion = "2.12.6"
 
-val AkkaVersion = "2.5.14"
+val AkkaVersion = "2.5.13"
 val JUnitVersion = "4.11"
 val JUnitInterfaceVersion = "0.11"
 val ScalaTestVersion = "3.0.4"
@@ -48,8 +48,8 @@ lazy val docs = project
       "org.hibernate" % "hibernate-core" % HibernateVersion,
       "javax.validation" % "validation-api" % ValidationApiVersion
     ),
-    scalacOptions ++= Seq("-deprecation", "-Xfatal-warnings"),
-    javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-parameters", "-Xlint:unchecked", "-Xlint:deprecation", "-Werror"),
+    scalacOptions ++= Seq("-deprecation"),
+    javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-parameters", "-Xlint:unchecked", "-Xlint:deprecation"),
     testOptions in Test += Tests.Argument("-oDF"),
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
     // This is needed so that Java APIs that use immutables will typecheck by the Scala compiler

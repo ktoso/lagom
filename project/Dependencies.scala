@@ -14,7 +14,7 @@ object Dependencies {
   val PlayFileWatchVersion = "1.1.7"
 
   // Also be sure to update AkkaVersion in docs/build.sbt.
-  val AkkaVersion = "2.5.14"
+  val AkkaVersion = "2.5.13"
   val AkkaHttpVersion = "10.1.3"
   // Also be sure to update ScalaVersion in docs/build.sbt.
   val ScalaVersions = Seq("2.12.6", "2.11.12")
@@ -31,8 +31,8 @@ object Dependencies {
   val MavenVersion = "3.3.9"
   val NettyVersion = "4.1.25.Final"
   val NettyReactiveStreamsVersion = "2.0.0"
-  val KafkaVersion = "1.0.1"
-  val AlpakkaKafkaVersion = "0.22"
+  val KafkaVersion = "0.11.0.1"
+  val AkkaStreamKafkaVersion = "0.18"
 
   val ScalaJava8CompatVersion = "0.8.0"
   val ScalaXmlVersion = "1.1.0"
@@ -68,7 +68,7 @@ object Dependencies {
   private val scalaXml = "org.scala-lang.modules" %% "scala-xml" % ScalaXmlVersion
   private val javassist = "org.javassist" % "javassist" % "3.21.0-GA"
   private val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0"
-  private val typesafeConfig = "com.typesafe" % "config" % "1.3.3"
+  private val typesafeConfig = "com.typesafe" % "config" % "1.3.2"
   private val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.2.3"
   private val h2 = "com.h2database" % "h2" % "1.4.192"
   private val cassandraDriverCore = "com.datastax.cassandra" % "cassandra-driver-core" % "3.2.0" excludeAll (excludeSlf4j: _*)
@@ -91,7 +91,7 @@ object Dependencies {
   // latest version of APC depend on a Cassandra driver core that's not compatible with Lagom (newer netty/guava/etc... under the covers)
   private val akkaPersistenceCassandra = "com.typesafe.akka" %% "akka-persistence-cassandra" % AkkaPersistenceCassandraVersion
   private val akkaPersistenceCassandraLauncher = "com.typesafe.akka" %% "akka-persistence-cassandra-launcher" % AkkaPersistenceCassandraVersion
-  private val akkaStreamKafka = "com.typesafe.akka" %% "akka-stream-kafka" % AlpakkaKafkaVersion
+  private val akkaStreamKafka = "com.typesafe.akka" %% "akka-stream-kafka" % AkkaStreamKafkaVersion
 
   private val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % AkkaHttpVersion
   private val akkaParsing = "com.typesafe.akka" %% "akka-parsing" % AkkaHttpVersion
@@ -105,6 +105,7 @@ object Dependencies {
   private val playNettyServer = "com.typesafe.play" %% "play-netty-server" % PlayVersion excludeAll (excludeSlf4j: _*)
   private val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % PlayVersion excludeAll (excludeSlf4j: _*)
   private val playServer = "com.typesafe.play" %% "play-server" % PlayVersion excludeAll (excludeSlf4j: _*)
+  private val playTest = "com.typesafe.play" %% "play-test" % PlayVersion excludeAll (excludeSlf4j: _*)
 
   private val playWs = "com.typesafe.play" %% "play-ws" % PlayVersion excludeAll (excludeSlf4j: _*)
   private val playAhcWs = "com.typesafe.play" %% "play-ahc-ws" % PlayVersion excludeAll (excludeSlf4j: _*)
@@ -197,7 +198,7 @@ object Dependencies {
       "joda-time" % "joda-time" % "2.9.9",
       "junit" % "junit" % JUnitVersion,
       "net.jodah" % "typetools" % "0.5.0",
-      "org.lz4" % "lz4-java" % "1.4",
+      "net.jpountz.lz4" % "lz4" % "1.3.0",
       "org.agrona" % "agrona" % "0.9.17",
       commonsLang,
       "org.apache.kafka" % "kafka-clients" % KafkaVersion,
@@ -218,7 +219,7 @@ object Dependencies {
       scalaXml,
       "org.scala-sbt" % "test-interface" % "1.0",
       "org.typelevel" %% "macro-compat" % "1.1.1",
-      "org.xerial.snappy" % "snappy-java" % "1.1.4",
+      "org.xerial.snappy" % "snappy-java" % "1.1.2.6",
       "tyrex" % "tyrex" % "1.0.1"
 
     ) ++ jacksonFamily ++ crossLibraryFamily("com.typesafe.akka", AkkaVersion)(
@@ -279,7 +280,7 @@ object Dependencies {
     "com.yammer.metrics" % "metrics-core" % "2.2.0",
     "jline" % "jline" % "0.9.94",
     "log4j" % "log4j" % "1.2.17",
-    "net.sf.jopt-simple" % "jopt-simple" % "5.0.4",
+    "net.sf.jopt-simple" % "jopt-simple" % "5.0.3",
     "org.apache.commons" % "commons-math" % "2.2",
     "org.apache.curator" % "curator-client" % "2.10.0",
     "org.apache.curator" % "curator-framework" % "2.10.0",
@@ -439,6 +440,7 @@ object Dependencies {
   val `integration-tests-javadsl` = libraryDependencies ++= Seq(
     playNettyServer,
     playAkkaHttpServer,
+    playTest % Test,
     "com.novocode" % "junit-interface" % "0.11" % Test,
     scalaTest
   )

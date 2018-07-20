@@ -3,19 +3,21 @@
  */
 package com.lightbend.lagom.javadsl.server;
 
+import akka.annotation.ApiMayChange;
 import com.google.inject.Binder;
 import com.lightbend.lagom.internal.javadsl.BinderAccessor;
-import com.lightbend.lagom.internal.javadsl.server.JavadslServicesRouter;
-import com.lightbend.lagom.internal.javadsl.server.ResolvedServices;
-import com.lightbend.lagom.internal.javadsl.server.ResolvedServicesProvider;
-import com.lightbend.lagom.internal.javadsl.server.ServiceInfoProvider;
+import com.lightbend.lagom.internal.javadsl.server.*;
 import com.lightbend.lagom.internal.server.status.MetricsServiceImpl;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceInfo;
 import com.lightbend.lagom.javadsl.client.ServiceClientGuiceSupport;
 import com.lightbend.lagom.javadsl.server.status.MetricsService;
+import play.routing.Router;
 
+import javax.inject.Provider;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Lagom service implementations must create one implementation of this interface and use it to bind Service
@@ -28,6 +30,104 @@ import java.util.Arrays;
  * cross-cutting services like {@link MetricsService} (allows monitoring circuit-breakers from the outside).
  */
 public interface ServiceGuiceSupport extends ServiceClientGuiceSupport {
+
+
+//    @Deprecated
+//    default <T extends Service> LagomServiceBuilder serverFor(Class<T> serviceInterface, Class<? extends T> serviceImplementation){
+//        return new LagomServiceBuilder(serviceBinding(serviceInterface, serviceImplementation), this);
+//    }
+//
+//    @Deprecated
+//    default <T extends Service> LagomServiceBuilder serverFor(Class<T> serviceInterface, T serviceInstance){
+//        return new LagomServiceBuilder(serviceBinding(serviceInterface, serviceInstance), this);
+//    }
+
+//    @Deprecated
+//    class LagomServiceBuilder {
+//
+//        private ServiceBinding<?> binding;
+//        private ServiceGuiceSupport guiceSupport;
+//
+//        private Provider<AdditionalRouters> additionalRoutersProvider = null;
+//        private Class<? extends javax.inject.Provider<? extends AdditionalRouters>> additionalRoutersProviderType = null;
+//
+//        private LagomServiceBuilder(ServiceBinding<?> binding, ServiceGuiceSupport guiceSupport) {
+//            this.binding = binding;
+//            this.guiceSupport = guiceSupport;
+//        }
+//
+//        private LagomServiceBuilder(ServiceBinding<?> binding, ServiceGuiceSupport guiceSupport, Provider<AdditionalRouters> additionalRoutersProvider) {
+//            this.binding = binding;
+//            this.guiceSupport = guiceSupport;
+//            this.additionalRoutersProvider = additionalRoutersProvider;
+//        }
+//        private LagomServiceBuilder(ServiceBinding<?> binding, ServiceGuiceSupport guiceSupport, Class<? extends javax.inject.Provider<? extends AdditionalRouters>> additionalRoutersProviderType) {
+//            this.binding = binding;
+//            this.guiceSupport = guiceSupport;
+//            this.additionalRoutersProviderType = additionalRoutersProviderType;
+//        }
+//
+//        public LagomServiceBuilder withAdditionalRouters(Provider<AdditionalRouters> additionalRoutersProvider) {
+//            return new LagomServiceBuilder(binding, guiceSupport, additionalRoutersProvider);
+//        }
+//
+//        public LagomServiceBuilder withAdditionalRouters(Class<? extends javax.inject.Provider<? extends AdditionalRouters>> additionalRoutersProviderType) {
+//            return new LagomServiceBuilder(binding, guiceSupport, additionalRoutersProviderType);
+//        }
+//
+//
+//        public void bind() {
+//
+//            Binder binder = BinderAccessor.binder(guiceSupport);
+//
+//            guiceSupport.bindClient(binding.serviceInterface());
+//
+//            // Now, bind the server implementation to itself as an eager singleton.
+//            if (binding instanceof ClassServiceBinding) {
+//                binder.bind(((ClassServiceBinding<?>) binding).serviceImplementation).asEagerSingleton();
+//            } else {
+//                Object service = ((InstanceServiceBinding<?>) binding).service;
+//                binder.bind((Class<Object>) service.getClass()).toInstance(service);
+//            }
+//
+//            // Bind the service info for the first one passed in
+//            binder.bind(ServiceInfo.class).toProvider(
+//                new ServiceInfoProvider(
+//                    binding.serviceInterface(),
+//                    new Class[0]
+//                ));
+//
+//            // Bind the metrics
+//            ServiceBinding<MetricsService> metricsServiceBinding = guiceSupport.serviceBinding(MetricsService.class, MetricsServiceImpl.class);
+//            binder.bind(((ClassServiceBinding<?>) metricsServiceBinding).serviceImplementation).asEagerSingleton();
+//
+//            // Bind the resolved services
+//            binder.bind(ResolvedServices.class).toProvider(new ResolvedServicesProvider(new ServiceBinding<?>[]{binding, metricsServiceBinding}));
+//
+//            if (additionalRoutersProviderType != null) {
+//                // that's the most common case, the user defines a Provider type and let Guice
+//                // instantiate it with the required dependencies
+//                binder.bind(AdditionalRouters.class).toProvider(additionalRoutersProviderType);
+//            } else if (additionalRoutersProvider != null) {
+//                // least common case, the user passes an instance of Provider<AdditionalRouters>
+//                binder.bind(AdditionalRouters.class).toProvider(additionalRoutersProvider);
+//            } else {
+//                // if not defined, we bind an empty list of routers
+//                binder.bind(AdditionalRouters.class).toProvider(new Provider<AdditionalRouters>() {
+//                    @Override
+//                    public AdditionalRouters get() {
+//                        return new EmptyAdditionalRouters();
+//                    }
+//                });
+//            }
+//
+//
+//
+//            // And bind the router
+//            binder.bind(LagomServiceRouter.class).to(JavadslServicesRouter.class);
+//        }
+//    }
+
 
     /**
      * Creates a custom {@link ServiceInfo} for this Lagom service. This method overrides
@@ -64,10 +164,13 @@ public interface ServiceGuiceSupport extends ServiceClientGuiceSupport {
      *                        {@link ServiceGuiceSupport#serviceBinding(Class, Class)} to build the
      *                        {@link ServiceBinding}s. Despite being a <code>varargs</code> argument, it is required to
      *                        provide at least one {@link ServiceBinding} as argument.
-     * @deprecated support for multiple locatable ServiceDescriptors per Lagom service will be removed.
      * Use {@link ServiceGuiceSupport#bindService} instead
      */
     default void bindServices(ServiceBinding<?>... serviceBindings) {
+        bindServicesAndRouters(serviceBindings, new Router[0]);
+    }
+
+    default void bindServicesAndRouters(ServiceBinding<?>[] serviceBindings, play.routing.Router[] additionalRouters) {
         Binder binder = BinderAccessor.binder(this);
 
         for (ServiceBinding binding : serviceBindings) {
@@ -81,6 +184,15 @@ public interface ServiceGuiceSupport extends ServiceClientGuiceSupport {
                 Object service = ((InstanceServiceBinding<?>) binding).service;
                 binder.bind((Class<Object>) service.getClass()).toInstance(service);
             }
+        }
+
+        // TODO or does it have to be new instances all the time (toProvider)?
+        if (additionalRouters.length > 0) {
+            AdditionalRouters routers = () -> Arrays.asList(additionalRouters);
+            binder.bind(AdditionalRouters.class).toInstance(routers);
+        } else {
+            // empty
+            binder.bind(AdditionalRouters.class).toInstance(AdditionalRouters.EMPTY);
         }
 
         ServiceBinding<?> primaryServiceBinding = serviceBindings[0];
@@ -119,8 +231,8 @@ public interface ServiceGuiceSupport extends ServiceClientGuiceSupport {
      * @param serviceImplementation the implementation class for the <code>serviceInterface</code>
      * @param <T>                   type constraint ensuring <code>serviceImplementation</code> implements <code>serviceInterface</code>
      */
-    default <T extends Service> void bindService(Class<T> serviceInterface, Class<? extends T> serviceImplementation) {
-        bindServices(serviceBinding(serviceInterface, serviceImplementation));
+    default <T extends Service> void bindService(Class<T> serviceInterface, Class<? extends T> serviceImplementation, play.routing.Router... routers) {
+        bindServicesAndRouters(new ServiceBinding[]{serviceBinding(serviceInterface, serviceImplementation)}, routers);
     }
 
     /**
@@ -134,10 +246,9 @@ public interface ServiceGuiceSupport extends ServiceClientGuiceSupport {
      * @param service          an instance of a class implementing <code>serviceInterface</code>
      * @param <T>              type constraint ensuring <code>serviceImplementation</code> implements <code>serviceInterface</code>
      */
-    default <T extends Service> void bindService(Class<T> serviceInterface, T service) {
-        bindServices(serviceBinding(serviceInterface, service));
+    default <T extends Service> void bindService(Class<T> serviceInterface, T service, play.routing.Router... routers) {
+        bindServicesAndRouters(new ServiceBinding[]{serviceBinding(serviceInterface, service)}, routers);
     }
-
 
     // TODO: move all code related to ServiceBinding to an internal package when removing bindServices(...)
 
